@@ -26,7 +26,8 @@ using namespace cv;
 /*
  * 
  */
-int detect_keypoints(Mat img){
+
+int svd_sift(Mat img){
     Ptr<Feature2D> f2d = xfeatures2d::SIFT::create();
     vector<KeyPoint> keypoints_1;
     Mat descriptors_1, img_keypoints_1;
@@ -39,12 +40,30 @@ int detect_keypoints(Mat img){
     int kp = keypoints_1.size();
     
     dataMatrix.push_back(descriptors_1);
-    cout << kp << endl;
-    cout << dataMatrix << endl;
     int rows = dataMatrix.rows; 
     int cols = dataMatrix.cols; 
+    
+    // SVD on dataMatrix
+    Mat s,u,v;
+    SVD::compute(dataMatrix, s,u,v);
+    
+//    int rank = 0;
+//    int nbEigenValue = min(rows, cols);
+//    
+//    for (int i =0; i< nbEigenValue; i++)
+//        if(s.at<float>(i) !=0){
+//            rank ++;
+//            //cout << "rank: " << rank << endl;
+//        }
+//    
+    
+    // Print out results
+    //cout << "Keypoints: " << kp << endl;
+    //cout << "Data Matrix:" << dataMatrix << endl;
+    //cout << "Singular Array:" << s << endl;
+    
     cout << "Rows:  " << rows << endl;
-    cout << "Cols:  " << cols << endl;
+    //cout << "Cols:  " << cols << endl;
     return kp;
 }
 void draw_text(Mat img, int kp){
@@ -64,12 +83,18 @@ void draw_grid(Mat img, int N){
 }
 int main(int argc, char** argv) {
     
+    /* START IMAGE */ 
+    /* Ctr + Shift + C : comment */
+    /*
     Mat img_1 = imread("vlcsnap-00024.png");
     imshow("img1", img_1);
+    
+    
     int N = 32; // assume size of block varies from 16x16 to 64x64 (same as LCU in HEVC)
     
     //draw a grid line
     draw_grid(img_1, N);   
+    int blockNo = 0;
     
     // detect & count number of keypoints in each block9
     Mat tile;
@@ -80,11 +105,45 @@ int main(int argc, char** argv) {
             
             tile = img_1(Range(r, min(r+N, img_1.rows)), Range(c,min(c+N, img_1.cols)));
             //detect and count number of key points in each block
-            int kp = detect_keypoints(tile);
+            blockNo++;
+            cout << "Block: [" << blockNo << "] -------------- " << endl;
+            int kp = svd_sift(tile);
             draw_text(tile, kp);
             
         }
     imshow("Grid Image", img_1);
+    */
+    /* END IMAGE */
+    
+    /* START VIDEO */
+    VideoCapture capture ("/home/larry/work/thu/videos/BasketballDrill.avi");
+    
+    
+    Mat frame;
+    int frameNumber = 0;
+    
+    while (1){
+        
+        capture >> frame;
+        if (frame.empty())
+        {
+            cout << "image not load" ;
+        }
+        else
+        {
+            
+            namedWindow("Video", CV_WINDOW_AUTOSIZE);
+            imshow("Video", frame);
+            frameNumber ++;
+        }
+                
+        cout << "Frame [" << frameNumber << "]. " ;
+        int kp = svd_sift(frame);
+        
+    }
+    
+    /* END VIDEO */
     waitKey(0);
+    capture.release();
     return 0;
 }
