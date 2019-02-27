@@ -30,11 +30,21 @@ int detect_keypoints(Mat img){
     Ptr<Feature2D> f2d = xfeatures2d::SIFT::create();
     vector<KeyPoint> keypoints_1;
     Mat descriptors_1, img_keypoints_1;
+    Mat dataMatrix (0, 128, CV_32F);
+    
     f2d->detect(img, keypoints_1); //Step 1 : Detect Keypoints
     f2d->compute(img, keypoints_1, descriptors_1); //Step 2 : Calculate descriptors (feature vectors)
+    
     drawKeypoints(img, keypoints_1, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT); //Draw Keypoints
     int kp = keypoints_1.size();
+    
+    dataMatrix.push_back(descriptors_1);
     cout << kp << endl;
+    cout << dataMatrix << endl;
+    int rows = dataMatrix.rows; 
+    int cols = dataMatrix.cols; 
+    cout << "Rows:  " << rows << endl;
+    cout << "Cols:  " << cols << endl;
     return kp;
 }
 void draw_text(Mat img, int kp){
